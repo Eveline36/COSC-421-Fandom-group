@@ -1,0 +1,89 @@
+\documentclass[a4paper]{article}
+
+\usepackage[left=1in, right=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\title{COSC421 Project Proposal}
+\author{
+    Yerdana Maulenbay (24831786)
+    \and
+    Nat Scott (31533524)
+    \and
+    Sara Srinivasan (10801751)
+    \and
+    An Tran (79499364)
+}
+\date{October 17, 2025}
+
+\begin{document}
+\maketitle
+
+\section{Problem solved}
+
+In this project, we intend to evaluate ways for users of Archive Of Our Own (AO3) to find works of fiction they are likely to enjoy.
+
+AO3 is a user-generated media platform typically used to host works of fan fiction, although it hosts a wide variety of fictional works. For example, some fans of Harry Potter may want to write their own stories set in the same universe, and stories like these are frequently uploaded to online repositories. AO3 is one of the older and more popular of these websites. Notably, the website does not have a built-in recommender algorithm. This is the problem we hope to remedy.
+
+\section{Data}
+
+For this project, we intend to use a dataset of AO3 stories and their tags that was scraped from the website in 2020. This dataset includes all publicly accessible stories from before July 17, 2020, or 6 million stories. This dataset is available freely online, \href{https://drive.google.com/file/d/15lcslOiovnyqj4RvgEt8Wv1hcJZAswMP/view}{uploaded to Google Drive by its creator}.
+
+This is a very large dataset and much of the information is not useful for our research questions. We cleaned the data and filtered out story content, taking only a 8GB vertical subset.
+
+\section{Nodes and Edges}
+
+This dataset constitutes a bipartite network, connecting stories to descriptive tags. For our analysis, we will be taking a one-mode projection onto the tags, such that if two tags appear in the same story, they will be connected by an edge. Our network will be weighted by the frequency of these connections.
+
+In this undirected network, each node will constitute a tag, and an edge implies at least two stories share the tag.
+
+\section{Research questions}
+
+We will explore four research questions in this project:
+\begin{enumerate}
+    \item How can we assess the importance of a tag using its centrality?
+    \item By analyzing clustering, can we identify communities of tags that are highly related?
+    \item By using analysis of similarity, can we make recommendations by connecting high-degree tags?
+    \item How can we systematically analyze changes in popularity over time to make recommendations?
+\end{enumerate}
+
+\section{Metrics}
+
+We will use several metrics in our analysis of the AO3 network:
+\begin{itemize}
+    \item Centrality measures:
+        \begin{itemize}
+            \item Degree: a high degree implies there are many related tags
+            \item Closeness: A closeness of 1 implies two tags are on the same story; in general, closeness implies they are on closely related stories
+            \item Betweenness: a high betweenness implies the tag is common among fandoms/groups of stories
+            \item Eigenvector centrality: a high centrality implies that the tag is popular across the whole network. This metric may not be possible/computationally reasonable to compute for the network, in which case it will be excluded
+        \end{itemize}
+    \item Clustering: if a community of tags has a high local clustering coefficient, then tags in that community are likely to appear together in a story
+    \item Structural similarity: If two tags are similar, then there's overlap in how they're used. In other words, there are tags closely related to both the tags being analyzed
+\end{itemize}
+
+\section{Analysis}
+
+We will analyze the relationships between tags in view of assessing strategies for making content recommendations for AO3 users. By answering our research questions, we expect to be able to describe a possible recommender algorithm for the platform. Each research question explores a different method of relating stories by tags, and our combined analysis will reveal which methods work well, which ones work poorly, and which can be combined for a better recommender algorithm.
+
+\section{Timeline}
+\begin{itemize}
+    \item Week 2: Choosing a topic (done)
+    \item Week 3: Data collection (done)
+    \item Week 4: Data cleaning (done)
+    \item Week 5: Finalizing the proposal (done)
+    \item Weeks 6-10: Independent analysis of research questions
+    \item Weeks 10-11: Analysis discussion and revision
+    \item Week 12: Report and Presentation
+\end{itemize}
+
+\section{Work distribution}
+
+\begin{itemize}
+    \item Sara: Research question 1, data collection
+    \item Nat: Research question 2, proposal and video collation
+    \item Yerdana: Research question 3, data cleaning
+    \item An: Research question 4, final report collation, slide show creation
+\end{itemize}
+
+\end{document}
