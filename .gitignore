@@ -52,3 +52,7 @@ rsconnect/
 *.out
 *.log
 *.aux
+
+# Vim
+*.swp
+*.swo
