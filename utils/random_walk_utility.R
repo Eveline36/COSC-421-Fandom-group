@@ -122,13 +122,17 @@ random_walker_utility <- function(
 ) {
     story.nodes <- V(graph)[which(V(graph)$class == 'story')]
 
-    utility.matrix <- Matrix(0,  nrow=walker.count,
-                                        ncol=length(story.nodes))
+    # Sparse utility matrix. Each row corresponds to all the stories visited
+    # (v > 0) or not (v = 0). Each column corresponds to all the visits by
+    # a particular walker.
+    utility.matrix <- Matrix(0, nrow=walker.count,
+                                ncol=length(story.nodes),
+                                sparse=TRUE)
+
+    # This will be accumulated over the course of the simulation
     utility.max <- 0
 
     for (walker.index in 1:walker.count) {
-        walker.row <- utility.matrix[walker.index,]
-
         selected.start.node <- start.node
 
         # If a vector, etc. was provided...
@@ -137,23 +141,26 @@ random_walker_utility <- function(
             selected.start.node <- sample(start.node, 1)
         }
 
-        # Take a random walk
-        # A "step" in this algorithm corresponds to two edges stepped; one to
-        # a tag and one to a story. Since this graph is bipartite two steps
-        # starting at a story node will always land you on another story node
+        # Take a random walk according to the selected step.algorithm
         path <- step.algorithm(graph, step.count, start.node, options=step.algorithm.options)
 
         # Collect visit counts
         nodes.visited <- as.vector(path)
         visit.counts <- tabulate(as.vector(path), nbins=vcount(graph))
+
+        # Update the maximum utility
         utility.max <- max(utility.max, visit.counts)
         utility.matrix[walker.index,] <- visit.counts
     }
 
+    # If a maximum value wasn't proved by the end-user, we provide the one
+    # calculated as a part of the simulation
     if (is.null(utility.transformer.options['max'])) {
         utility.transformer.options['max'] <- utility.max
     }
 
+    # Apply a transformation to the utility matrix so that the visit counts
+    # correspond to some simulated score
     utility.matrix <- utility.transformer(utility.matrix, options=utility.transformer.options)
 
     utility.matrix
