@@ -4,7 +4,10 @@ Core idea behind Random Walk, Eigen Centrality, and Katz Centrality measures is 
 Although Similarity and Recommender systems were 2 separate RQs, they are interdependent. Having said that, the following is my approach to Random Walker.
 # 2 Types of Random Walker algorithm.
 To explain the following algorithms, suppose we have a one-mode projection onto stories of our bi-partite graph of Stories and Tags:
-(T1) (T2) (T3) (T4) (T5)                          (T6)              ## Here S1 and S2 are connected by T1, T2, T3, T4, T5, whereas S1 and S3 are only connected by T6
+### Here S1 and S2 are connected by T1, T2, T3, T4, T5, whereas S1 and S3 are only connected by T6
+
+```mermaid
+(T1) (T2) (T3) (T4) (T5)                          (T6)              
  \   \    |     /    /                            / \
    \  \   |    /    /                           (S1) (S2) 
      \ \  |   /    /
@@ -16,6 +19,7 @@ To explain the following algorithms, suppose we have a one-mode projection onto 
      \ \  |   /    /
          (S2) 
 
+```
 
 First, there is a regular Random Walker, which uses PageRank. It starts off at a user-specified Story Node S1 and has a parameter Damping, which is a probability that it 
 continues to walk to the next node. 1-Damping is the probability that our Walker will return to node S1, which we specified. In real-world terms, you may think of 
