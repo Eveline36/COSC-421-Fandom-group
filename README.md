@@ -6,7 +6,7 @@ Although Similarity and Recommender systems were 2 separate RQs, they are interd
 To explain the following algorithms, suppose we have a one-mode projection onto stories of our bi-partite graph of Stories and Tags:
 ### Here S1 and S2 are connected by T1, T2, T3, T4, T5, whereas S1 and S3 are only connected by T6
 
-
+```
 (T1) (T2) (T3) (T4) (T5)                          (T6)              
  \   \    |     /    /                            / \
    \  \   |    /    /                           (S1) (S2) 
