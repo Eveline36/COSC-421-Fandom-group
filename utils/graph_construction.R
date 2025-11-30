@@ -101,6 +101,8 @@ bipartite_story_tag_graph <- function(csv.path=NULL, portion=NULL, edges=NULL) {
     story.tag.graph <- add_edges(story.tag.graph,
         edges=as.matrix(edges[,3:4]) |> t() |> as.vector()
     )
+
+    story.tag.graph
 }
 
 #' Given a story-tag bipartite graph (as generated with
