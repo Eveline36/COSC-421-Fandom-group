@@ -146,21 +146,13 @@ utility_transformer_for_an_easily_pleased_walker <- function(graph, utility.matr
 #' This function assumes each story vertex has a $kudos attribute corresponding
 #' to the number of kudos it's recieved
 #'
-#' @param   options['kudos_distribution']   Kudos distribution. If not given,
-#'                                          this function will search for the
-#'                                          global kudos distribution csv file
-#'                                          in subsets/kudos_asc.csv and use it
 #' @param   options['minimum']              Minimum score. Default: 0.1
 #' @param   options['middle.spread']        Portion of the distribution to
 #'                                          consider. Default: 1 (all of it)
 #'
 #' See utility_transformer_basic for additional parameters
-utility_transformer_with_kudos <- function(utility.matrix, options=c()) {
-    kudos.distribution <- options['kudos_distribution']
-    if (is.na(kudos.distribution)) {
-        kudos.distribution <- read.csv('../../subsets/kudos_asc.csv', header=FALSE)
-        kudos.distribution <- kudos.distribution$V1
-    }
+utility_transformer_with_kudos <- function(graph, utility.matrix, options=c()) {
+    kudos.distribution <- V(graph)$kudos
 
     # Default: set the minimum score to 0.1. That way, all stories visited have
     # at least a little bit of preference
@@ -172,7 +164,7 @@ utility_transformer_with_kudos <- function(utility.matrix, options=c()) {
     middle.spread <- options['minimum']
     if (is.na(middle.spread)) { middle.spread <- 1 }
 
-    kudos.transformer <- kudos_transformer_factory(kudos_distribution,
+    kudos.transformer <- kudos_transformer_factory(kudos.distribution,
                                                    minimum.score,
                                                    middle.spread)
 
@@ -180,7 +172,7 @@ utility_transformer_with_kudos <- function(utility.matrix, options=c()) {
     # utility matrix, however, each cell will be equal to the story's kudos
     # count
 
-    kudos.matrix <- replicate(nrow(utility.matrix), V(graph)$kudos) |> t()
+    kudos.matrix <- replicate(nrow(utility.matrix), kudos.distribution) |> t()
 
     # Normalize the kudos scores with the kudos transformer function
     kudos.matrix <- kudos.transformer(kudos.matrix)
