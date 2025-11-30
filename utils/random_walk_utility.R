@@ -22,7 +22,6 @@ library(Matrix)
 #' @return  A random walk path
 step_algorithm_basic <- function(graph, step.count, start.node, options=c()) {
     weights <- options['weights']
-    print(weights)
 
     random_walk(
         graph=graph,
@@ -73,40 +72,36 @@ step_algorithm_with_equal_weights <- function(graph, step.count, start.node, opt
 #'                          middle.spread == 0.6, then the middle 60 stories
 #'                          will be included.
 kudos_transformer_factory <- function(kd, minimum=0, middle.spread=1) {
-    # Ensure that kd excludes stories with zero kudos so that we can actually
+    # Ensure that kd excludes stories with zero kudos
     # take the log
     kd <- kd[which(kd > 0)]
-
     outer.spread.width = (1 - middle.spread) / 2
-
-    # Take only the middle portion, as defined by middle.spread
-    kd <- kd[
-        round(length(kd) * outer.spread.width) :
-        round(length(kd) * (1 - outer.spread.width))
-    ]
-
+    kd <- kd[round(length(kd) * outer.spread.width) : round(length(kd) * (1 - outer.spread.width))]
     log_kd <- log(kd)
     kd_range <- range(kd)
-
     function(v) {
-        if (v < kd_range[1]) {
-            # If we're below the lower bound, we set the score to 0.1
-            minimum
-        } else if (v > kd_range[2]) {
-            # If we're above the upper bound, set the score to 1
-            1
-        } else {
-            # Put the value on a scale from 0 to 1
-            score <- (log(v) - range(log_kd)[1]) /
-                        (range(log_kd)[2] - range(log_kd)[1])
+        # If we're below the lower bound, we set the score to 0.1
+        v[which(v < kd_range[1])] <- minimum
 
-            # Adjust the normalized score so that the value is at least the
-            # given minimum value
-            score <- (score * (1-minimum)) + minimum
+        # If we're above the upper bound, set the score to 1
+        v[which(v > kd_range[2])] <- 1
 
-            score
-        }
+        # Put the value on a scale from 0 to 1
+        middle.part <- v[which(v >= kd_range[1] & v <= kd_range[2])]
+        middle.part <- (log(middle.part) - range(log_kd)[1]) /
+                    (range(log_kd)[2] - range(log_kd)[1])
+
+        # Adjust the normalized score
+        middle.part <- (middle.part * (1-minimum)) + minimum
+
+        v[which(v >= kd_range[1] & v <= kd_range[2])] <- middle.part
+        v
     }
+}
+
+#' Deprecated; use utility_transformer_with_transitivity instead
+utility_transformer_basic <- function(graph, utility.matrix, options=c()) {
+    utility_transformer_with_transitivity(graph, utility.matrix, options)
 }
 
 #' Basic utility transformer. Takes the max visit count for the whole network,
@@ -123,7 +118,7 @@ kudos_transformer_factory <- function(kd, minimum=0, middle.spread=1) {
 #'                          be overridden manually
 #'
 #' @return  The transformed utility.matrix
-utility_transformer_basic <- function(graph, utility.matrix, options=c()) {
+utility_transformer_with_transitivity <- function(graph, utility.matrix, options=c()) {
     utility.matrix / options['max']
 }
 
@@ -239,13 +234,11 @@ random_walker_utility <- function(
     step.algorithm.options=c(),
     utility.transformer.options=c()
 ) {
-    story.nodes <- V(graph)[which(V(graph)$class == 'story')]
-
     # Sparse utility matrix. Each row corresponds to all the stories visited
     # (v > 0) or not (v = 0). Each column corresponds to all the visits by
     # a particular walker.
     utility.matrix <- Matrix(0, nrow=walker.count,
-                                ncol=length(story.nodes),
+                                ncol=vcount(graph),
                                 sparse=TRUE)
 
     # This will be accumulated over the course of the simulation
