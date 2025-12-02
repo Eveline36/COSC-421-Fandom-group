@@ -161,7 +161,7 @@ utility_transformer_with_kudos <- function(graph, utility.matrix, options=c()) {
 
     # Default: use all the kudos data. This relationship will likely be less
     # linear but it will have more meaningful values for low kudos values
-    middle.spread <- options['minimum']
+    middle.spread <- options['middle.spread']
     if (is.na(middle.spread)) { middle.spread <- 1 }
 
     kudos.transformer <- kudos_transformer_factory(kudos.distribution,
