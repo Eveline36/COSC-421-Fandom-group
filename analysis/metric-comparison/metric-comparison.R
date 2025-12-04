@@ -88,50 +88,47 @@ V(small.story.graph)$eigen.utility <- eigen_centrality(small.story.graph)$vector
 # Similarity
 ## Cosine, jaccard
 
+neighbouring_nodes <- function(graph, node.name) {
+    edgelist <- as_edgelist(graph)
+    neighbours <- edgelist[which(edgelist[,1] %in% node.name),][,2]
+    V(graph)[which(V(graph)$name %in% neighbours)]
+}
+
 neighbourhood_subgraph  <- function(graph, node.name) {
-    edgelist <- as_edgelist(small.story.graph)
-    neighbours <- edgelist[which(edgelist[,1] == node.name),][,2]
-    neighbours <- V(graph)[which(V(graph)$name %in% neighbours)]
+    neighbours <- neighbouring_nodes(graph, node.name)
     neighbourhood <- induced_subgraph(graph,
                             c(V(graph)[which(V(graph)$name == node.name)], neighbours))
 
     neighbourhood
 }
 
-cosine_similarity <- function(graph, node.name) {
-    neighbourhood <- neighbourhood_subgraph(graph, node.name)
-    adjacency.matrix <- as_adjacency_matrix(neighbourhood)
+cosine_similarity <- function(bipartite.graph, projection.graph, node.name) {
+    bipartite.graph <- as_undirected(bipartite.graph, mode='each')
+    neighbourhood <- neighbourhood_subgraph(projection.graph, node.name)
 
-    source.node.col <- adjacency.matrix[,1]
-    other.node.cols <- adjacency.matrix |> t() |> tail(-1) |> t()
+    node.index <- which(V(bipartite.graph)$name == node.name)
+    neighbour.indices <- which(V(bipartite.graph)$name %in% V(neighbourhood)$name)
+
+    adjacency.matrix <- as_adjacency_matrix(bipartite.graph)
+
+    source.node.col <- adjacency.matrix[,node.index]
+    other.node.cols <- adjacency.matrix[,neighbour.indices]
 
     cosine.similarities <- apply(other.node.cols, 2, function(column)
             sum(source.node.col * column) /
                 (sqrt(sum(source.node.col**2)) * sqrt(sum(column**2))))
-    V(graph)$c__cosine.similarity <- NA
-    V(graph)[which(V(graph)$name == node.name)]$c__cosine.similarity <- 1
-    V(graph)[which(V(graph)$name %in% tail(V(neighbourhood)$name, -1))]$c__cosine.similarity <- cosine.similarities
+    V(bipartite.graph)$c__cosine.similarity <- NA
+    V(bipartite.graph)[which(V(bipartite.graph)$name %in% V(neighbourhood)$name)]$c__cosine.similarity <- cosine.similarities
 
-    V(graph)$c__cosine.similarity
-}
-
-jaccard_similarity <- function(graph, node.name) {
-    neighbourhood <- neighbourhood_subgraph(graph, node.name)
-    node.index <- which(V(graph)$name == node.name)
-
-    V(graph)$c__jaccard.similarity <- NA
-    V(graph)[which(V(graph)$name %in% V(neighbourhood)$name)]$c__jaccard.similarity <- 
-        similarity(neighbourhood, method='jaccard')[node.index,]
-
-    V(graph)$c__jaccard.similarity
+    V(bipartite.graph)$c__cosine.similarity
 }
 
 # These are already put on a scale from 0 to 1, so we don't need to bother normalizing them
-V(large.story.graph)$cosine.utility <- cosine_similarity(large.story.graph, STARTING_STORY_ID)
-V(small.story.graph)$cosine.utility <- cosine_similarity(small.story.graph, STARTING_STORY_ID)
+V(large.bipartite.subset)$cosine.utility <- cosine_similarity(large.bipartite.subset, large.story.graph, STARTING_STORY_ID)
+V(small.bipartite.subset)$cosine.utility <- cosine_similarity(small.bipartite.subset, small.story.graph, STARTING_STORY_ID)
 
-V(large.story.graph)$jaccard.utility <- jaccard_similarity(large.story.graph, STARTING_STORY_ID)
-V(small.story.graph)$jaccard.utility <- jaccard_similarity(small.story.graph, STARTING_STORY_ID)
+V(large.story.graph)$cosine.utility <- V(large.bipartite.subset)[type == F]$cosine.utility
+V(small.story.graph)$cosine.utility <- V(small.bipartite.subset)[type == F]$cosine.utility
 
 large.utility.df <- data.frame(
     degree=V(large.story.graph)$degree.utility,
@@ -139,8 +136,7 @@ large.utility.df <- data.frame(
     betweenness=V(large.story.graph)$betweenness.utility,
     eigen=V(large.story.graph)$eigen.utility,
 
-    cosine=V(large.story.graph)$cosine.utility,
-    jaccard=V(large.story.graph)$jaccard.utility
+    cosine=V(large.story.graph)$cosine.utility
 )
 
 utility.r.squared <- apply(large.utility.df, 2, function(z)
@@ -148,8 +144,8 @@ utility.r.squared <- apply(large.utility.df, 2, function(z)
 )
 
 utility.r.squared
-#>      degree   closeness betweenness       eigen      cosine     jaccard 
-#> 0.036957275 0.036957275 0.036957275 0.065966774 0.007424192 0.008312686
+#>      degree   closeness betweenness       eigen      cosine
+#> 0.036957275 0.036957275 0.036957275 0.065966774  0.02207547
 
 # These are all pretty bad, although this shouldn't be surprising. The metrics
 # tell us fundamentally different things about the network. Although our
@@ -170,7 +166,7 @@ utility.r.squared
 svg('fig01-r-squared.svg')
 barplot(utility.r.squared,
     main='R² values for metrics correlated with kudos utility',
-    names=c('Degree', 'Closeness', 'Betweenness', 'Eigenvector', 'Cosine', 'Jaccard'),
+    names=c('Degree', 'Closeness', 'Betweenness', 'Eigenvector', 'Cosine'),
     xlab='Metric', ylab='R²',
     cex.names=0.8
 )
@@ -235,16 +231,12 @@ svg('fig06-utility-cosine.svg')
 plot_utility(small.story.graph, large.story.graph, name='Cosine similarity utility', 'cosine.utility')
 dev.off()
 
-svg('fig07-utility-jaccard.svg')
-plot_utility(small.story.graph, large.story.graph, name='Jaccard similarity utility', 'jaccard.utility')
-dev.off()
-
-svg('fig08-utility-synthetic.svg')
+svg('fig07-utility-synthetic.svg')
 plot_utility(small.story.graph, large.story.graph, name='Synthetic kudos-based utility', 'synthetic.utility')
 dev.off()
 
 make_residual <- function(graph, variable) {
-    (vertex_attr(graph, 'synthetic.utility') - vertex_attr(graph, variable)) ^ 2
+    (vertex_attr(graph, 'synthetic.utility') - vertex_attr(graph, variable))
 }
 
 V(large.story.graph)$degree.utility.residual <- make_residual(large.story.graph, 'degree.utility')
@@ -253,7 +245,6 @@ V(large.story.graph)$betweenness.utility.residual <- make_residual(large.story.g
 V(large.story.graph)$eigen.utility.residual <- make_residual(large.story.graph, 'eigen.utility')
 
 V(large.story.graph)$cosine.utility.residual <- make_residual(large.story.graph, 'cosine.utility')
-V(large.story.graph)$jaccard.utility.residual <- make_residual(large.story.graph, 'jaccard.utility')
 
 V(small.story.graph)$degree.utility.residual <- make_residual(small.story.graph, 'degree.utility')
 V(small.story.graph)$closeness.utility.residual <- make_residual(small.story.graph, 'closeness.utility')
@@ -261,28 +252,23 @@ V(small.story.graph)$betweenness.utility.residual <- make_residual(small.story.g
 V(small.story.graph)$eigen.utility.residual <- make_residual(small.story.graph, 'eigen.utility')
 
 V(small.story.graph)$cosine.utility.residual <- make_residual(small.story.graph, 'cosine.utility')
-V(small.story.graph)$jaccard.utility.residual <- make_residual(small.story.graph, 'jaccard.utility')
 
-svg('fig09-utility-degree-residual.svg')
+svg('fig08-utility-degree-residual.svg')
 plot_utility(small.story.graph, large.story.graph, name='Residual Degree utility', 'degree.utility.residual', normalize=T)
 dev.off()
 
-svg('fig10-utility-closeness-residual.svg')
+svg('fig09-utility-closeness-residual.svg')
 plot_utility(small.story.graph, large.story.graph, name='Residual Closeness utility', 'closeness.utility.residual', normalize=T)
 dev.off()
 
-svg('fig11-utility-betweenness-residual.svg')
+svg('fig10-utility-betweenness-residual.svg')
 plot_utility(small.story.graph, large.story.graph, name='Residual Betweenness utility', 'betweenness.utility.residual', normalize=T)
 dev.off()
 
-svg('fig12-utility-eigenvector-residual.svg')
+svg('fig11-utility-eigenvector-residual.svg')
 plot_utility(small.story.graph, large.story.graph, name='Residual Eigenvector utility', 'eigen.utility.residual', normalize=T)
 dev.off()
 
-svg('fig13-utility-cosine-residual.svg')
+svg('fig12-utility-cosine-residual.svg')
 plot_utility(small.story.graph, large.story.graph, name='Residual Cosine utility', 'cosine.utility.residual', normalize=T)
-dev.off()
-
-svg('fig14-utility-jaccard-residual.svg')
-plot_utility(small.story.graph, large.story.graph, name='Residual Jaccard utility', 'jaccard.utility.residual', normalize=T)
 dev.off()
