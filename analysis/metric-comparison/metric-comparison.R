@@ -177,11 +177,16 @@ colourizer <- function(v) {
     node_palette[round(v * 255) + 1]
 }
 
-plot_utility <- function(small.graph, large.graph, variable, name='Utility Score Distribution', normalize=FALSE, seed=1, vertex.size=7) {
+plot_utility <- function(small.graph, large.graph, variable, name='Utility Score Distribution', normalize=FALSE, absv=FALSE, seed=1, vertex.size=7) {
     layout_matrix <- matrix(1:2, nrow=2)
     small.utilities <- vertex_attr(small.graph, variable)
 
     coloured.utility <- vertex_attr(small.graph, variable)
+
+    if (absv) {
+        coloured.utility <- abs(coloured.utility)
+    }
+
     if (normalize) {
         coloured.utility <- (coloured.utility - min(coloured.utility, na.rm=T)) /
             (max(coloured.utility, na.rm=T) - min(coloured.utility, na.rm=T))
@@ -254,21 +259,21 @@ V(small.story.graph)$eigen.utility.residual <- make_residual(small.story.graph, 
 V(small.story.graph)$cosine.utility.residual <- make_residual(small.story.graph, 'cosine.utility')
 
 svg('fig08-utility-degree-residual.svg')
-plot_utility(small.story.graph, large.story.graph, name='Residual Degree utility', 'degree.utility.residual', normalize=T)
+plot_utility(small.story.graph, large.story.graph, name='Residual Degree utility', 'degree.utility.residual', normalize=T, absv=T)
 dev.off()
 
 svg('fig09-utility-closeness-residual.svg')
-plot_utility(small.story.graph, large.story.graph, name='Residual Closeness utility', 'closeness.utility.residual', normalize=T)
+plot_utility(small.story.graph, large.story.graph, name='Residual Closeness utility', 'closeness.utility.residual', normalize=T, absv=T)
 dev.off()
 
 svg('fig10-utility-betweenness-residual.svg')
-plot_utility(small.story.graph, large.story.graph, name='Residual Betweenness utility', 'betweenness.utility.residual', normalize=T)
+plot_utility(small.story.graph, large.story.graph, name='Residual Betweenness utility', 'betweenness.utility.residual', normalize=T, absv=T)
 dev.off()
 
 svg('fig11-utility-eigenvector-residual.svg')
-plot_utility(small.story.graph, large.story.graph, name='Residual Eigenvector utility', 'eigen.utility.residual', normalize=T)
+plot_utility(small.story.graph, large.story.graph, name='Residual Eigenvector utility', 'eigen.utility.residual', normalize=T, absv=T)
 dev.off()
 
 svg('fig12-utility-cosine-residual.svg')
-plot_utility(small.story.graph, large.story.graph, name='Residual Cosine utility', 'cosine.utility.residual', normalize=T)
+plot_utility(small.story.graph, large.story.graph, name='Residual Cosine utility', 'cosine.utility.residual', normalize=T, absv=T)
 dev.off()
