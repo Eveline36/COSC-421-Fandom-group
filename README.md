@@ -9,7 +9,7 @@ To explain the following algorithms, suppose we have a one-mode projection onto 
 ```
 (T1) (T2) (T3) (T4) (T5)                          (T6)              
  \   \    |     /    /                            / \
-   \  \   |    /    /                           (S1) (S2) 
+   \  \   |    /    /                           (S1) (S3) 
      \ \  |   /    /
          (S1) 
 
