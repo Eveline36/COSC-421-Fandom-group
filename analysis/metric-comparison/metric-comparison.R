@@ -76,11 +76,11 @@ V(small.story.graph)$synthetic.utility <- utility_transformer_with_kudos(
 V(large.story.graph)$degree.utility <- degree(large.story.graph) |> normalize_utility()
 V(small.story.graph)$degree.utility <- degree(small.story.graph) |> normalize_utility()
 
-V(large.story.graph)$closeness.utility <- degree(large.story.graph) |> normalize_utility()
-V(small.story.graph)$closeness.utility <- degree(small.story.graph) |> normalize_utility()
+V(large.story.graph)$closeness.utility <- closeness(large.story.graph) |> normalize_utility()
+V(small.story.graph)$closeness.utility <- closeness(small.story.graph) |> normalize_utility()
 
-V(large.story.graph)$betweenness.utility <- degree(large.story.graph) |> normalize_utility()
-V(small.story.graph)$betweenness.utility <- degree(small.story.graph) |> normalize_utility()
+V(large.story.graph)$betweenness.utility <- betweenness(large.story.graph) |> normalize_utility()
+V(small.story.graph)$betweenness.utility <- betweenness(small.story.graph) |> normalize_utility()
 
 V(large.story.graph)$eigen.utility <- eigen_centrality(large.story.graph)$vector |> normalize_utility()
 V(small.story.graph)$eigen.utility <- eigen_centrality(small.story.graph)$vector |> normalize_utility()
@@ -144,8 +144,8 @@ utility.r.squared <- apply(large.utility.df, 2, function(z)
 )
 
 utility.r.squared
-#>      degree   closeness betweenness       eigen      cosine
-#> 0.036957275 0.036957275 0.036957275 0.065966774  0.02207547
+#>       degree    closeness  betweenness        eigen       cosine
+#> 0.0321212602 0.0001035203 0.0024443244 0.0539850040 0.0244127324
 
 # These are all pretty bad, although this shouldn't be surprising. The metrics
 # tell us fundamentally different things about the network. Although our
